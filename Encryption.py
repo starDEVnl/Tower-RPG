@@ -10,11 +10,12 @@ class Encryption():
         save_dir = os.path.dirname(os.path.realpath(__file__))
         save_key = False
         for x in os.listdir(save_dir):
-            if x == "save.json":
+            if x == "save.txt":
                 save_key = True
         if save_key:
-            with open("save.json", "r") as f:
+            with open("save.txt", "rb") as f:
                 data = f.read()
+            print(data)
             l = data
             l = dk.decrypt(data)
             self.key = l
@@ -22,8 +23,7 @@ class Encryption():
             self.key = Fernet.generate_key()
             l = self.key
             l = dk.encrypt(l)
-            l = l.decode("utf-8")
-            with open("save.json", "w") as f:
+            with open("save.txt", "wb") as f:
                 f.write(l)
         self.f = Fernet(self.key)
     def encrypt(self, data):
