@@ -1210,15 +1210,15 @@ def main():
         Character.activity = "menu"
         Character.update()
         print("--- Tower RPG Menu ---")
-        print("[T] ower       [S] tats          [P] assive Healing       [Q] uit")
-        print("[I] nventory   [M] ultiplayer    [B] uy Items             [C] ollections")
-        print("[D] aily boss")
+        print("[T] ower       [S] tats          [H] Healing       [Q] uit")
+        print("[I] nventory   [M] ultiplayer    [B] uy Item       [C] ollections")
+        print("[D] aily boss  [P] ets")
         player_input = input()
         if player_input == "T" or player_input == "t":
             wait = tower()
         elif player_input == "S" or player_input == "s":
             Character.stats()
-        elif player_input == "P" or player_input == "p":
+        elif player_input == "H" or player_input == "h":
             wait = healing()
         elif player_input == "i" or player_input == "I":
             wait = inventory()
@@ -1230,6 +1230,8 @@ def main():
             wait = collections()
         elif player_input == "D" or player_input == "d":
             wait = daily_boss()
+        elif player_input == "P" or player_input == "p":
+            wait = pet_menu()
         elif player_input == "Q" or player_input == "q":
             print("\n")
             Character.save()
