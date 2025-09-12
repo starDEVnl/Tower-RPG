@@ -32,3 +32,14 @@ class Encryption():
     def decrypt(self, data):
         data = self.f.decrypt(data)
         return eval(data.decode("utf-8"))   
+            
+try:
+    f = Fernet(key)
+    print(key)
+
+    token = f.encrypt(b"Hello World")
+
+    print(token)
+    d = f.decrypt(token)
+    d = d.decode("utf-8")
+except: pass
