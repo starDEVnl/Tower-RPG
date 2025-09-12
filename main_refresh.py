@@ -40,6 +40,8 @@ stat_default = {
     "d_quest" : [],
     "mining_level" : 1,
     "mining_xp" : 0,
+    "iron" : 0,
+    "gold" : 0,
     "g_gems" : 0, #green gems
     "b_gems" : 0, #blue gems
     "r_gems" : 0, #red gems
@@ -68,6 +70,17 @@ d_quests = [
         "c_r" : [{"g_gems" : 1}]
         }
     ]
+
+ore_rates = {
+    "iron" : 0,
+    "gold" : 10,
+    "g_gems" : 15,
+    "b_gems" : 25,
+    "r_gems" : 40,
+    "rg_gems" : 76,
+    "rb_gems" : 125,
+    "rr_gems" : 200
+    }
 
 gear = {
     "Wooden Sword" : {
@@ -600,7 +613,17 @@ class Player:
             "boss_day" : self.boss_day,
             "pet_eggs" : self.pet_eggs,
             "hatching_egg" : self.hatching_egg,
-            "d_quest" : self.d_quest
+            "d_quest" : self.d_quest,
+            "iron" : self.iron,
+            "gold" : self.gold,
+            "g_gems" : self.g_gems,
+            "b_gems" : self.b_gems,
+            "r_gems" : self.r_gems,
+            "rg_gems" : self.rg_gems,
+            "rb_gems" : self.rb_gems,
+            "rr_gems" : self.rr_gems,
+            "c_gems" : self.c_gems,
+            "rc_gems" : self.rc_gems
             }
         data = e.encrypt(data).encode("utf-8")
         with open(file_name, "wb") as f:
@@ -655,6 +678,10 @@ class Player:
             self.e_sword = kwargs["e_sword"]
         except:
             pass
+        try:
+            pet_xp = kwargs["pet_xp"]
+        except:
+            pet_xp = 0
         for x in range(xp):
             if xp > 0:
                 self.xp = self.xp + 1
@@ -663,7 +690,25 @@ class Player:
                     self.xp = 0
                     self.level = self.level + 1
                     print("\nLEVEL UP:", self.name, "Level", self.level, "\n")
-                
+        for x in range(pet_xp):
+            if pet_xp > 0:
+                xp = self.e_pet["xp"] + 1
+                self.e_pet.update({"xp" : (self.e_pet["xp"] + 1)})
+                level = self.e_pet["level"]
+                if self.e_pet["xp"] >= (self.e_pet["level"] * 15):
+                    self.e_pet.update({"level" : (self.e_pet["level"] + 1)})
+                    self.e_pet.update({"xp" : 0})
+                    xp = 0
+                    level = self.e_pet["level"]
+                    if e_pet["nametag"] == "":
+                        print(f"\nPet {self.e_pet['name']} leveled up!\n")
+                    else:
+                        print(f"\nPet {self.e_pet['nametag']} leveled up!\n")
+                pet_info = self.pets[self.e_pet["name"]]
+                pet_info.update({"xp" : xp})
+                pet_info.update({"level" : level})
+                self.pets.update({self.e_pet["name"] : pet_info})
+                pet_xp = pet_xp - 1
         self.defense = self.defense + defense
         self.strenght = self.strenght + strenght
         self.dexterity = self.dexterity + dexterity
@@ -829,7 +874,10 @@ def pet_menu():
     eggs = Character.pet_eggs
     print(f"Eggs: {eggs}")
     if Character.e_pet:
-        print("\nEquipped Pet: " + Character.e_pet["name"])
+        if Character.e_pet["nametag"] == "":
+            print("\nEquipped Pet: " + Character.e_pet["name"] + " - Level " + str(Character.e_pet["level"]) + "(" + str(Character.e_pet["xp"]) + "/" + str(Character.e_pet["level"] * 15) + ")")
+        else:
+            print("\nEquipped Pet: " + Character.e_pet["nametag"] + " (" + Character.e_pet["name"] + ") - Level " + str(Character.e_pet["level"]) + "(" + str(Character.e_pet["xp"]) + "/" + str(Character.e_pet["level"] * 15) + ")")
     else:
         print("\nEquipped Pet: None")
     y = 0
@@ -837,9 +885,9 @@ def pet_menu():
     if Character.pets:
         for x in Character.pets:
             if Character.pets[x]["nametag"] == "":
-                print(y + ". " + Character.pets[x]["name"] + " - Level" + Character.pets[x]["level"])
+                print(str(y) + ". " + str(Character.pets[x]["name"]) + " - Level " + str(Character.pets[x]["level"]))
             else:
-                print(y + ". " + Character.pets[x]["nametag"] + "(" + Character.pets[x]["name"] + ") - Level" + Character.pets[x]["level"])
+                print(str(y) + ". " + str(Character.pets[x]["nametag"]) + " (" + Character.pets[x]["name"] + ") - Level " + str(Character.pets[x]["level"]))
             pL.append(x)
     while True:
         p_input = input("E <num> to equip   -   N <num> name pet   -   ENTER to exit\n")
@@ -848,19 +896,19 @@ def pet_menu():
         
         if p_input[0] == "E":
             if p_input[1]:
-                if int(p_input[1:]) <= len(pL) and int(p_input) >= 0:
-                    select = pL[p_input[1:]]
+                if int(p_input[1:]) <= len(pL) and int(p_input[1:]) >= 0:
+                    select = pL[int(p_input[1:])]
                     Character.e_pet = pet[select]
                     print("Equipped pet: " + Character.e_pet["name"])
-                    wait = input("Press ENTER to continue")
+                    wait = input("\nPress ENTER to continue")
                 else:
                     print("Invalid input")
             else:
                 print("Invalid input")
         if p_input[0] == "N":
             if p_input[1]:
-                if int(p_input[1:]) <= len(pL) and int(p_input) >= 0:
-                    select = pL[p_input[pL]]
+                if int(p_input[1:]) <= len(pL) and int(p_input[1:]) >= 0:
+                    select = pL[int(p_input[1:])]
                     rename = input(f"Name for {select}(none to cancel): ")
                     if not rename == "":
                         pet_info = Character.pets[select]
@@ -991,6 +1039,9 @@ def fight(**battle):
         if not wait == "R" or wait == "r":
             #Fighting code:    
             enemy_check = enemy_fight.stat("health") + character_attack
+            if Character.e_pet:
+                pet_dmg = math.floor(random.randint(7, 11) / 10 * Character.e_pet["dmg"] * Character.e_pet["level"])
+                enemy_check = enemy_check - pet_dmg
             p_healthChange = enemy_attack + health_bonus
             
             enemy_fight.get_damage(character_attack)
@@ -1004,14 +1055,17 @@ def fight(**battle):
                     Character.dmg_record = character_attack * -1
                     print(space + "\nNEW DAMAGE RECORD " + str(character_attack * -1) + " DAMAGE\n" + space)
                 print("You dealt", str(character_attack * -1), "damage")
+                eg_dmg = character_attack * -1
                 if Character.e_pet:
+                    eg_dmg = eg_dmg + pet_dmg
                     if Character.e_pet["nametag"]:
-                        print("Pet " + Character.e_pet["nametag"] + " dealt " + Character.e_pet["dmg"])
+                        print("Pet " + Character.e_pet["nametag"] + " dealt " + str(pet_dmg) + " damage")
                     else:
-                        print("Pet " + Character.e_pet["name"] + " dealt " + Character.e_pet["dmg"])
-                    enemy_fight.get_damage(Character.e_pet["dmg"])
+                        print("Pet " + Character.e_pet["name"] + " dealt " + str(pet_dmg) + " damage")
+                    enemy_fight.get_damage(pet_dmg * -1)
+                eg_dmg = eg_dmg * -1
                 print("Enemy", enemy_fight.stat("type"), "dealt", str(enemy_attack * -1), "damage")
-                print("YOUR HEALTH: " + str(Character.stat("health")) + "(" + str(p_healthChange) + ") | ENEMY HEALTH: ", str(enemy_fight.stat("health")) + "(" + str(character_attack) + ")")
+                print("YOUR HEALTH: " + str(Character.stat("health")) + "(" + str(p_healthChange) + ") | ENEMY HEALTH: ", str(enemy_fight.stat("health")) + "(" + str(eg_dmg) + ")")
                 print("\n" + space)
             else:
                 if (character_attack * -1) > Character.dmg_record:
@@ -1023,6 +1077,7 @@ def fight(**battle):
                 Character.silver = Character.silver + xp_on_kill * 2
                 Character.t_level = Character.t_level + 1
                 Character.pet_hatching(uXp, True)
+                Character.change_stat(pet_xp = uXp)
                 if e_type == "enemy":
                     if Character.t_level > 9:
                         Character.t_level = 1
@@ -1050,21 +1105,54 @@ def fight(**battle):
             #Add quests and lose progress of em
             break
 
+def mines():
+    print("Started mining!")
+    mining = True
+    depth = 0
+    while mining:
+        depth = depth + 1
+
+def mine():
+    if not Character.level > 9:
+        pass
+        #print("You need to be at least level 10 to enter the mines!")
+        #return
+    print(space + space + space + "\n                      ⛏️ THE MINES ⛏️\n" + space + space + space)
+    while True:
+        print("[E] nter Mine   [G] uide   [P] ickaxes   -   ENTER to exit")
+        print("[S] tats")
+        p_input = input()
+        if p_input == "":
+            return
+        if p_input == "G" or p_input == "g":
+            print("\nWelcome to the mines!\nIn one of the most dangerous but most rewarding areas\nof the game, you will need to find gemstone\nnodes while fighting off extraordinary enemeies\n\nIf you enter the mines, you WON'T be able to \nleave until you find an exit!\nBe ready, explorer!")
+        elif p_input == "E" or p_input == "e":
+            mines()
+        elif p_input == "S" or p_input == "s":
+            print(f"\n{Character.name}'s Mining Stats:")
+            print(f"Iron: {Character.iron}\nGold: {Character.gold}")
+            print(f"Green Gems: {Character.g_gems}\nBlue Gems: {Character.b_gems}\nRed Gems: {Character.r_gems}")
+            print(f"Refined Green Gems: {Character.rg_gems}\nRefined Blue Gems: {Character.rb_gems}\nRefined Red Gems: {Character.rr_gems}")
+            print(f"Clean Gems: {Character.c_gems}\nRefined Clean Gems: {Character.rc_gems}\n")
+            wait = input("Press ENTER to continue...")
+        
 def collections():
     print("Collections:")
     swords = []
     shields = []
     armor = []
+    pets = list(pet.keys()) 
     for x in gear:
         if gear[x]["type"] == "sword":
             swords.append(x)
         if gear[x]["type"] == "shield":
             shields.append(x)
         if gear[x]["type"] == "armor":
-            armor.append(x)
+            armor.append(x)     
     owned_swords = []
     owned_shields = []
     owned_armor = []
+    owned_pets = list(Character.pets.keys())
     for x in Character.gear:
         if gear[x]["type"] == "sword":
             owned_swords.append(x)
@@ -1075,9 +1163,11 @@ def collections():
     perc_swords = int(len(owned_swords) / len(swords)* 100)
     perc_shields = int(len(owned_shields) / len(shields) * 100)
     perc_armor = int(len(owned_armor) / len(armor) * 100)
+    perc_pets = int(len(owned_pets) / len(pets) * 100)
     swords_bar = ""
     shields_bar = ""
     armor_bar = ""
+    pets_bar = ""
     for x in range(0, 101, 5):
         if perc_swords > x:
             swords_bar = swords_bar + "#"
@@ -1093,10 +1183,15 @@ def collections():
             armor_bar = armor_bar + "#"
     while len(armor_bar) < 20:
         armor_bar = armor_bar + "-"
+    for x in range(0, 101, 5):
+        if perc_pets > x:
+            pets_bar = pets_bar + "#"
+    while len(pets_bar) < 20:
+        pets_bar = pets_bar + "-"
     print("Swords:   " + swords_bar + "  - " + str(len(owned_swords)) + "/" + str(len(swords)))
     print("Shields:  " + shields_bar + "  - " + str(len(owned_shields)) + "/" + str(len(shields)))
     print("Armor:    " + armor_bar + "  - " + str(len(owned_armor)) + "/" + str(len(armor)))
-    #Copy for shields and armor
+    print("Pets:     " + pets_bar + "  - " + str(len(owned_pets)) + "/" + str(len(pets)))
     wait = input("\nPress ENTER to continue")
     
 #Lootbox opening
@@ -1229,16 +1324,20 @@ def inventory():
         pass
 
 def dungeon():
-    print("WIP")
-    return
     print(space + space + space + "\n                   -<= DUNGEON MENU =>-                    \n" + space + space + space)
     while True:
         print("[D] ungeon Master    [E] nter Dungeon   -   ENTER to exit")
+        print("[S] tats             [T] he mines")
         p_input = input()
         if p_input == "":
             break
-        if p_input == "D" or p_input == "d":
+        elif p_input == "D" or p_input == "d":
             print("Quests:")
+        elif p_input == "S" or p_input == "s":
+            print("\nYour Dungeon Stats:")
+            wait = input("Press ENTER to continue...")
+        elif p_input == "T" or p_input == "t":
+            wait = mine()
 
 def daily_boss():
     if Character.boss_day == time_yday:
@@ -1360,9 +1459,9 @@ def main():
         Character.activity = "menu"
         Character.update()
         print("--- Tower RPG Menu ---")
-        print("[T] ower       [S] tats          [H] Healing       [Q] uit")
-        print("[I] nventory   [F] riend         [B] uy Item       [C] ollections")
-        print("[D] Daily boss [P] ets           [M] Dungeon Menu")
+        print("[T] ower         [S] tats          [H] Healing       [Q] uit")
+        print("[I] nventory     [F] riend         [B] uy Item       [C] ollections")
+        print("[D] Daily boss   [P] ets           [M] Dungeon Menu")
         player_input = input()
         if player_input == "T" or player_input == "t":
             wait = tower()
